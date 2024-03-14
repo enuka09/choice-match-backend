@@ -1,0 +1,32 @@
+{
+  "extends": ["eslint:recommended", "plugin:node/recommended", "plugin:prettier/recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "commonjs": true
+  },
+  "rules": {
+    "prefer-const": "error",
+    "no-var": "warn",
+    "no-unused-vars": "warn",
+    "no-use-before-define": "error",
+    // "no-console": "warn",
+    "no-unused-expressions": "warn",
+    "camelcase": "warn",
+    "quotes": ["error", "double", { "avoidEscape": true }],
+    "semi": ["error", "always"],
+    "no-multi-spaces": ["error"],
+    "prettier/prettier": ["error", { "endOfLine": "auto" }],
+    "no-duplicate-imports": "error",
+    "no-shadow": "off",
+    "key-spacing": "error",
+    "no-multiple-empty-lines": "error",
+    "no-return-await": "off",
+    "no-trailing-spaces": "error",
+    "dot-notation": "error",
+    "no-bitwise": "error"
+  }
+}

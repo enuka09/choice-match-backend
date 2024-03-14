@@ -1,13 +1,24 @@
 const express = require("express");
-const app = express();
-
+const cors = require("cors");
+// eslint-disable-next-line node/no-unpublished-require
+const { connectToDatabase } = require("./config/db");
+const bodyParser = require("body-parser");
 require("dotenv").config();
-const port = process.env.SERVER_PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.send("Hello Choice Match!!");
-});
+const port = process.env.SERVER_PORT || 3000;
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+connectToDatabase();
 
 app.listen(port, () => {
-  console.log(`Server up & running on http://localhost:${port}`);
+  console.log(`Server started & running on port ${port}`);
+});
+
+app.get("/test-api", (req, res) => {
+  return res.json({ message: "Server Works!" });
 });
