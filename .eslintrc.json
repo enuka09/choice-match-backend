@@ -7,6 +7,7 @@
   "env": {
     "node": true,
     "commonjs": true
+    // "jest": true
   },
   "rules": {
     "prefer-const": "error",
@@ -28,5 +29,8 @@
     "no-trailing-spaces": "error",
     "dot-notation": "error",
     "no-bitwise": "error"
+  },
+  "globals": {
+    "request": "readonly"
   }
 }
