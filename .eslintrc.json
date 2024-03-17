@@ -6,8 +6,8 @@
   },
   "env": {
     "node": true,
-    "commonjs": true
-    // "jest": true
+    "commonjs": true,
+    "jest": true
   },
   "rules": {
     "prefer-const": "error",
