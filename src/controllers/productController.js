@@ -75,22 +75,10 @@ const deleteProduct = async (req, resp) => {
   }
 };
 
+// Find all products
 const findAllProducts = (req, resp) => {
   try {
-    const {
-      searchText,
-      page = 1,
-      size = 10,
-      color,
-      size: productSize,
-      mainCategory,
-      subCategory,
-      brand,
-      minPrice,
-      maxPrice,
-    } = req.query;
-    const pageNumber = parseInt(page);
-    const pageSize = parseInt(size);
+    const { searchText, color, size: productSize, mainCategory, subCategory, brand, minPrice, maxPrice } = req.query;
 
     const query = {};
     if (searchText) {
@@ -119,15 +107,9 @@ const findAllProducts = (req, resp) => {
       query.unitPrice = { $lte: parseFloat(maxPrice) };
     }
 
-    const skip = (pageNumber - 1) * pageSize;
-
-    productSchema
-      .find(query)
-      .limit(pageSize)
-      .skip(skip)
-      .then(response => {
-        return resp.status(200).json(response);
-      });
+    productSchema.find(query).then(response => {
+      return resp.status(200).json(response);
+    });
   } catch (error) {
     return resp.status(500).json({ message: "Internal Server Error" });
   }
@@ -155,6 +137,17 @@ const findAllMin = (req, resp) => {
   }
 };
 
+// Find All Featured
+const findAllFeaturedProducts = (req, resp) => {
+  try {
+    productSchema.find({ isFeatured: true }).then(response => {
+      return resp.status(200).json(response);
+    });
+  } catch (error) {
+    return resp.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   createProduct,
   findProductById,
@@ -163,4 +156,5 @@ module.exports = {
   findAllProducts,
   findProductCount,
   findAllMin,
+  findAllFeaturedProducts,
 };

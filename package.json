@@ -32,6 +32,7 @@
     "mongodb": "^6.5.0",
     "mongoose": "^8.2.1",
     "nodemailer": "^6.9.12",
+    "stripe": "^15.1.0",
     "supertest": "^6.3.4",
     "winston": "^3.12.0"
   },

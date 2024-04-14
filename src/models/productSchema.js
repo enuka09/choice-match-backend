@@ -17,18 +17,15 @@ const productSchema = new mongoose.Schema({
     required: true,
   },
   mainCategory: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "MainCategory",
+    type: String,
     required: true,
   },
   subCategory: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "SubCategory",
+    type: String,
     required: true,
   },
   brand: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Brand",
+    type: String,
     required: true,
   },
   color: [
@@ -53,8 +50,8 @@ const productSchema = new mongoose.Schema({
     default: false,
   },
   dateCreated: {
-    type: Date,
-    default: Date.now,
+    type: String,
+    default: () => new Date().toISOString().split("T")[0],
   },
 });
 

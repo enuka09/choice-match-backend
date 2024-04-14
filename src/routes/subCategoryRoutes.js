@@ -8,5 +8,6 @@ router.put("/update/:id", subCategoryController.updateSubCategory);
 router.delete("/delete-by-id/:id", subCategoryController.deleteSubCategory);
 router.get("/find-all", subCategoryController.findAllSubCategories);
 router.get("/find-all-count", subCategoryController.findSubCategoryCount);
+router.get("/find-by-main-category/:categoryName", subCategoryController.findByMainCategoryName);
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const subCategorySchema = require("../models/subCategorySchema");
+const mainCategorySchema = require("../models/mainCategorySchema");
 
 // Create sub-Category
 const createSubCategory = (req, resp) => {
@@ -60,21 +61,9 @@ const deleteSubCategory = async (req, resp) => {
 // Find all Sub-Categories
 const findAllSubCategories = (req, resp) => {
   try {
-    const { searchText, page = 1, size = 10 } = req.query;
-    const pageNumber = parseInt(page);
-    const pageSize = parseInt(size);
-
-    const query = {};
-    if (searchText) {
-      query.$text = { $search: searchText };
-    }
-
-    const skip = (pageNumber - 1) * pageSize;
-
     subCategorySchema
-      .find(query)
-      .limit(pageSize)
-      .skip(skip)
+      .find()
+      .populate("mainCategory")
       .then(response => {
         return resp.status(200).json(response);
       });
@@ -94,6 +83,24 @@ const findSubCategoryCount = (req, resp) => {
   }
 };
 
+// Find Sub-Category by Main Category
+const findByMainCategoryName = async (req, res) => {
+  try {
+    const mainCategoryName = req.params.categoryName;
+    const mainCategory = await mainCategorySchema.findOne({ name: mainCategoryName });
+
+    if (!mainCategory) {
+      return res.status(404).json({ message: "Main category not found" });
+    }
+
+    const subCategories = await subCategorySchema.find({ mainCategory: mainCategory._id });
+    res.json(subCategories);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error", error: error.toString() });
+  }
+};
+
 module.exports = {
   createSubCategory,
   findSubCategoryById,
@@ -101,4 +108,5 @@ module.exports = {
   deleteSubCategory,
   findAllSubCategories,
   findSubCategoryCount,
+  findByMainCategoryName,
 };

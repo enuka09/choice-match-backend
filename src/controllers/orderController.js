@@ -1,15 +1,21 @@
 const orderSchema = require("../models/orderSchema");
 
-// Create Order
+// Create order
 const createOrder = (req, resp) => {
+  console.log("Received request to create order:", req.body);
+
   const order = new orderSchema({
-    date: req.body.date,
-    customerDetails: req.body.customerDetails,
-    products: req.body.products,
-    totalCost: req.body.totalCost,
+    orderId: req.body.orderId,
+    cartItems: req.body.cartItems,
+    shippingDetails: req.body.shippingDetails,
+    billingDetails: req.body.billingDetails,
+    paymentMethod: req.body.paymentMethod,
+    subtotal: req.body.subtotal,
+    deliveryCharge: req.body.deliveryCharge,
     discount: req.body.discount,
-    paymentDetails: req.body.paymentDetails,
-    orderStatus: req.body.orderStatus,
+    total: req.body.total,
+    status: req.body.status,
+    dateCreated: req.body.dateCreated || Date.now(),
   });
   order
     .save()
@@ -62,24 +68,16 @@ const deleteOrder = async (req, resp) => {
 // Find All Orders
 const findAllOrders = (req, resp) => {
   try {
-    const { searchText, page = 1, size = 10 } = req.query;
-    const pageNumber = parseInt(page);
-    const pageSize = parseInt(size);
+    const { searchText } = req.query;
 
     const query = {};
     if (searchText) {
       query.$text = { $search: searchText };
     }
 
-    const skip = (pageNumber - 1) * pageSize;
-
-    orderSchema
-      .find(query)
-      .limit(pageSize)
-      .skip(skip)
-      .then(response => {
-        return resp.status(200).json(response);
-      });
+    orderSchema.find(query).then(response => {
+      return resp.status(200).json(response);
+    });
   } catch (error) {
     return resp.status(500).json({ message: "Internal Server Error" });
   }
@@ -96,6 +94,40 @@ const findOrderCount = (req, resp) => {
   }
 };
 
+// Create payment
+/* eslint-disable camelcase */
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
+
+const createPayment = async (req, res) => {
+  const { products, orderId } = req.body;
+
+  const lineItems = products.map(product => ({
+    price_data: {
+      currency: "lkr",
+      product_data: {
+        name: product.name,
+        images: [product.image],
+      },
+      unit_amount: Math.round(product.unitPrice * 100),
+    },
+    quantity: product.quantity,
+  }));
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      mode: "payment",
+      success_url: `${process.env.CLIENT_URL}/checkout/payment/success/${orderId}`,
+      cancel_url: `${process.env.CLIENT_URL}/checkout/payment/cancel/${orderId}`,
+    });
+    res.json({ id: session.id });
+  } catch (error) {
+    console.error("Error creating payment session:", error);
+    res.status(500).send("Failed to create payment session");
+  }
+};
+
 module.exports = {
   createOrder,
   findOrderById,
@@ -103,4 +135,5 @@ module.exports = {
   deleteOrder,
   findAllOrders,
   findOrderCount,
+  createPayment,
 };

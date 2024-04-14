@@ -37,7 +37,7 @@ app.get(`${api}/test-api`, (req, res) => {
   res.send("Server Works!");
 });
 
-const server = app.listen(process.env.PORT || 3000, () => {
+const server = app.listen(process.env.PORT || 4000, () => {
   logger.info(`Server started & running on port ${server.address().port}`);
 });
 
