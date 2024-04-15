@@ -1,32 +1,48 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
-  date: {
-    type: Date,
-    default: Date.now,
-  },
-  customerDetails: {
-    type: Object,
+  orderId: {
+    type: String,
     required: true,
   },
-  products: {
+  cartItems: {
     type: Array,
     required: true,
   },
-  totalCost: {
+  shippingDetails: {
+    type: Object,
+    required: true,
+  },
+  billingDetails: {
+    type: Object || String,
+    required: true,
+  },
+  paymentMethod: {
+    type: String,
+    required: true,
+  },
+  subtotal: {
+    type: Number,
+    required: true,
+  },
+  deliveryCharge: {
     type: Number,
     required: true,
   },
   discount: {
     type: Number,
   },
-  paymentDetails: {
-    type: Object,
+  total: {
+    type: Number,
     required: true,
   },
-  orderStatus: {
+  status: {
     type: String,
-    default: "pending",
+    status: { type: String, default: "Pending", enum: ["Pending", "Shipped", "Delivered", "Cancelled"] },
+  },
+  dateCreated: {
+    type: Date,
+    default: Date.now,
   },
 });
 

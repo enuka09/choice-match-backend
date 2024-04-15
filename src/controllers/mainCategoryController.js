@@ -58,24 +58,16 @@ const deleteMainCategory = async (req, resp) => {
 // Find all Main-Categories
 const findAllMainCategories = (req, resp) => {
   try {
-    const { searchText, page = 1, size = 10 } = req.query;
-    const pageNumber = parseInt(page);
-    const pageSize = parseInt(size);
+    const { searchText } = req.query;
 
     const query = {};
     if (searchText) {
       query.$text = { $search: searchText };
     }
 
-    const skip = (pageNumber - 1) * pageSize;
-
-    mainCategorySchema
-      .find(query)
-      .limit(pageSize)
-      .skip(skip)
-      .then(response => {
-        return resp.status(200).json(response);
-      });
+    mainCategorySchema.find(query).then(response => {
+      return resp.status(200).json(response);
+    });
   } catch (error) {
     return resp.status(500).json({ message: "Internal Server Error" });
   }

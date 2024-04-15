@@ -5,7 +5,9 @@ const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
+const handlebars = require("handlebars");
 
+// user Signup
 const userRegister = async (req, resp) => {
   try {
     let user = new userSchema({
@@ -14,8 +16,9 @@ const userRegister = async (req, resp) => {
       passwordHash: bcrypt.hashSync(req.body.password, salt),
       phone: req.body.phone,
       dob: req.body.dob,
-      isAdmin: req.body.isAdmin,
-      activeState: req.body.activeState,
+      gender: req.body.gender,
+      isAdmin: req.body.isAdmin || false,
+      activeState: req.body.activeState || true,
     });
 
     user = await user.save();
@@ -24,7 +27,7 @@ const userRegister = async (req, resp) => {
       return resp.status(400).send("User registration was unsuccessful!");
     }
 
-    // Send email notification
+    // Setup email transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -33,30 +36,36 @@ const userRegister = async (req, resp) => {
       },
     });
 
-    const htmlFilePath = path.join(__dirname, "../../views/email-template.html");
-    const htmlTemplate = fs.readFileSync(htmlFilePath, "utf8");
+    const templatePath = path.join(__dirname, "../../views/email-template.hbs");
+    const templateSource = fs.readFileSync(templatePath, "utf8");
+    const template = handlebars.compile(templateSource);
+
+    const htmlToSend = template({
+      name: req.body.fullName,
+    });
+
     const mailOptions = {
       from: '"ChoiceMatch Support" <choicematch.hello@gmail.com>',
       to: req.body.email,
       subject: "Welcome to ChoiceMatch",
-      html: htmlTemplate,
+      html: htmlToSend,
     };
 
-    transporter.sendMail(mailOptions, function (error) {
-      if (error) {
+    transporter
+      .sendMail(mailOptions)
+      .then(() => {
+        console.log("Email sent successfully!");
+      })
+      .catch(error => {
         console.error("Error sending email:", error);
-        return resp.status(500).json({ error: error });
-      } else {
-        return resp.status(201).json({ message: "User registered successfully and email sent!" });
-      }
-    });
+      });
+
+    resp.status(201).json({ message: "User registered successfully!" });
   } catch (error) {
     console.error("Error registering user:", error);
-    return resp.status(500).json({ error: error.message });
+    resp.status(500).json({ error: error.message });
   }
 };
-
-module.exports = userRegister;
 
 // User Login
 const userLogin = async (req, resp) => {
@@ -74,7 +83,8 @@ const userLogin = async (req, resp) => {
       secret,
       { expiresIn: "1d" },
     );
-    resp.status(200).send({ user: user.email, token: token });
+    console.log("Generated token:", token); // Check the output of this
+    resp.status(200).send({ user: user.email, isAdmin: user.isAdmin, token: token });
   } else {
     resp.status(400).send("Invalid Password!");
   }
