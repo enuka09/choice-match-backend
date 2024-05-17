@@ -1,55 +1,80 @@
+const { userLogin } = require("../../controllers/userController");
 const userSchema = require("../../models/userSchema");
-const userController = require("../../controllers/userController");
-require("dotenv").config();
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-// process.env.SECRET_KEY = "your_secret_key_here";
+jest.mock("../../models/userSchema");
+jest.mock("bcryptjs");
+jest.mock("jsonwebtoken");
 
-describe("User Login", () => {
-  it("should login a user with correct credentials", async () => {
-    const req = {
-      body: {
-        email: "kamal@gmail.com",
-        password: "Kamal_@1998",
-      },
-    };
-    const res = {
-      status: jest.fn().mockReturnThis(),
+describe("userLogin", () => {
+  const req = {
+    body: {
+      email: "testuser@test.com",
+      password: "testPass",
+    },
+  };
+  let resp;
+  let originalConsoleLog;
+
+  beforeEach(() => {
+    originalConsoleLog = console.log;
+    console.log = jest.fn();
+    resp = {
+      status: jest.fn(() => resp),
       send: jest.fn(),
+      json: jest.fn(),
     };
 
-    const mockUser = {
-      email: "kamal@gmail.com",
-      passwordHash: "$2a$10$gcnGPU5NAmZ16qW7LERxKu3.H92hD3XGkWLuQV2gW6OWYt2vJ2PCC", // Hashed "testPass_123"
-    };
+    userSchema.findOne = jest.fn();
+    bcrypt.compareSync = jest.fn();
+  });
 
-    userSchema.findOne = jest.fn().mockResolvedValue(mockUser);
+  afterEach(() => {
+    console.log = originalConsoleLog;
+  });
 
-    await userController.userLogin(req, res);
+  test("should login user successfully", async () => {
+    userSchema.findOne.mockResolvedValue({
+      _id: "123",
+      email: "testuser@test.com",
+      passwordHash: "hashedPassword",
+      isAdmin: false,
+    });
+    bcrypt.compareSync.mockReturnValue(true);
+    jwt.sign = jest.fn().mockReturnValue("fakeToken");
 
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith({
-      user: "kamal@gmail.com",
-      token: expect.any(String),
+    await userLogin(req, resp);
+
+    expect(resp.status).toHaveBeenCalledWith(200);
+    expect(resp.send).toHaveBeenCalledWith({
+      user: req.body.email,
+      isAdmin: false,
+      token: "fakeToken",
     });
   });
 
-  it("should fail to login with incorrect password", async () => {
-    const req = {
-      body: {
-        email: "kamal@gmail.com",
-        password: "invalidPassword",
-      },
-    };
-    const res = {
-      status: jest.fn().mockReturnThis(),
-      send: jest.fn(),
-    };
+  test("should fail login if user not found", async () => {
+    userSchema.findOne.mockResolvedValue(null);
 
-    userSchema.findOne = jest.fn().mockResolvedValue(null);
+    await userLogin(req, resp);
 
-    await userController.userLogin(req, res);
+    expect(resp.status).toHaveBeenCalledWith(400);
+    expect(resp.send).toHaveBeenCalledWith("User Not Found!");
+  });
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith("User Not Found!");
+  test("should fail login if password does not match", async () => {
+    userSchema.findOne.mockResolvedValue({
+      _id: "123",
+      email: "testuser@test.com",
+      passwordHash: "hashedPassword",
+      isAdmin: false,
+    });
+    bcrypt.compareSync.mockReturnValue(false);
+
+    await userLogin(req, resp);
+
+    expect(resp.status).toHaveBeenCalledWith(400);
+    expect(resp.send).toHaveBeenCalledWith("Invalid Password!");
   });
 });

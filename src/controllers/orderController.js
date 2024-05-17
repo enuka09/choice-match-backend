@@ -96,6 +96,7 @@ const findOrderCount = (req, resp) => {
 
 // Create payment
 /* eslint-disable camelcase */
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 const createPayment = async (req, res) => {
@@ -121,7 +122,7 @@ const createPayment = async (req, res) => {
       success_url: `${process.env.CLIENT_URL}/checkout/payment/success/${orderId}`,
       cancel_url: `${process.env.CLIENT_URL}/checkout/payment/cancel/${orderId}`,
     });
-    res.json({ id: session.id });
+    res.json({ id: session.id, message: "Payment Sucess" });
   } catch (error) {
     console.error("Error creating payment session:", error);
     res.status(500).send("Failed to create payment session");

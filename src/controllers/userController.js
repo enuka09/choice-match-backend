@@ -83,26 +83,16 @@ const userLogin = async (req, resp) => {
       secret,
       { expiresIn: "1d" },
     );
-    console.log("Generated token:", token); // Check the output of this
-    resp.status(200).send({ user: user.email, isAdmin: user.isAdmin, token: token });
+    console.log("Generated token:", token);
+    resp
+      .status(200)
+      .send({ user: user.email, isAdmin: user.isAdmin, gender: user.gender, name: user.name, token: token });
   } else {
     resp.status(400).send("Invalid Password!");
   }
 };
 
-// Find by Id
-// const findUserById = (req, resp) => {
-//   userSchema
-//     .findOne({ _id: req.params.id })
-//     .select("-passwordHash")
-//     .then(selectedObj => {
-//       if (selectedObj != null) {
-//         return resp.status(200).json(selectedObj);
-//       }
-//       return resp.status(404).json({ message: `User with Id ${req.params.id} Not Found!` });
-//     });
-// };
-
+// Find User by ID
 const findUserById = async (req, resp) => {
   try {
     const selectedObj = await userSchema.findOne({ _id: req.params.id }).select("-passwordHash");
@@ -113,7 +103,6 @@ const findUserById = async (req, resp) => {
       return resp.status(404).json({ message: `User with Id ${req.params.id} Not Found!` });
     }
   } catch (error) {
-    console.error("Error finding user by ID:", error);
     return resp.status(500).json({ message: "Internal Server Error" });
   }
 };
